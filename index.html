@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Word Book</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Sans+JP:wght@300;400;500&display=swap');
+
+    :root {
+      /* SHIRO風：ミニマル・上質・洗練のカラーパレット */
+      --bg-color: #fbfbf9;        /* 柔らかなオフホワイト */
+      --card-odd: #ffffff;        /* 奇数スロット：ピュアホワイト */
+      --card-even: #f5f4f0;       /* 偶数スロット：ニュアンスグレー */
+      --text-main: #2b2b2a;       /* 墨のようなブラック */
+      --text-muted: #8c8b88;      /* 繊細なグレー */
+      --accent-gold: #c5a059;     /* シャンパンゴールド */
+      --border-color: #e2e0d8;    /* 極細の境界線 */
+      --input-border: #333333;    /* テキストボックス明確化用：黒細線 */
+      --group-bg: #efece6;
+      --group-border: #d5d1c8;
+      --hidden-mask: #333333;     /* 非表示時：黒マスク */
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
+    body {
+      font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-color);
+      color: var(--text-main);
+      padding: 12px;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+
+    /* アプリタイトル */
+    .app-header-title {
+      font-family: 'Cormorant Garamond', serif;
+      text-align: center;
+      margin: 20px 0 24px 0;
+      color: var(--text-main);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+    }
+
+    /* ボタン共通 */
+    button {
+      cursor: pointer;
+      padding: 10px 18px;
+      border-radius: 2px;
+      border: 1px solid var(--text-main);
+      background: var(--text-main);
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    button:active { opacity: 0.8; transform: translateY(1px); }
+    
+    .btn-primary {
+      background: var(--text-main);
+      color: #ffffff;
+      border: 1px solid var(--text-main);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+    .btn-secondary:active { background: #f0eee8; }
+
+    .btn-danger {
+      background: transparent;
+      color: #a33b3b;
+      border: 1px solid #f0d5d5;
+    }
+
+    .btn-rename {
+      padding: 4px 10px;
+      font-size: 11px;
+      border-radius: 2px;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+    }
+
+    /* 画面切り替え */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* タイトルページ */
+    .memo-list { list-style: none; margin-top: 20px; }
+    .memo-item {
+      background: var(--card-odd);
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      border-radius: 2px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.015);
+    }
+    .memo-item-title { flex: 1; font-weight: 400; font-size: 14px; letter-spacing: 0.05em; color: var(--text-main); }
+    .memo-item-actions { display: flex; gap: 8px; }
+    .empty-message { text-align: center; color: var(--text-muted); margin-top: 50px; font-size: 13px; font-weight: 300; letter-spacing: 0.05em; }
+
+    .reset-area { margin-top: 50px; text-align: center; }
+    .btn-reset { background: transparent; border: none; color: var(--text-muted); font-size: 11px; text-decoration: underline; box-shadow: none; letter-spacing: 0.05em; }
+
+    /* メモページ 上部固定ヘッダー */
+    .sticky-header-container {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(251, 251, 249, 0.95);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .header {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 4px 0;
+    }
+    .header h2 { font-size: 16px; font-weight: 400; letter-spacing: 0.08em; color: var(--text-main); flex: 1; outline: none; border-bottom: 1px solid transparent; transition: border 0.2s; }
+    .header h2:focus { border-bottom-color: var(--accent-gold); }
+
+    .control-panel { display: flex; gap: 8px; margin-bottom: 10px; }
+
+    /* 非表示ボタン：スロットカード全体の左右両端と幅を完璧にアライン */
+    .toggle-header {
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+
+    /* スロット内部の余白(10px) ＋ チェックボックス部(18px + 8px gap = 26px) を計算したオフセット領域 */
+    .toggle-header-offset {
+      width: 36px; /* 10px (pair-item padding-left) + 18px (checkbox width) + 8px (gap) = 36px */
+      flex-shrink: 0;
+    }
+
+    .toggle-buttons-wrapper {
+      display: flex;
+      flex: 1;
+      gap: 6px; /* スロット内部のinputs-container gap(6px)と完全一致 */
+      padding-right: 10px; /* pair-item padding-right(10px)と完全一致 */
+    }
+
+    .toggle-btn {
+      text-align: center;
+      padding: 8px 4px;
+      background: #ffffff;
+      color: var(--text-main);
+      border: 1px solid var(--input-border); /* テキストボックスと同じ黒細線 */
+      border-radius: 2px;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: all 0.2s;
+    }
+
+    /* 比率をスロットの入力欄(40%:60%)と一致 */
+    .btn-toggle-word { width: 40%; flex-shrink: 0; }
+    .btn-toggle-desc { width: 60%; flex-shrink: 0; }
+
+    .toggle-btn.active-show {
+      background: var(--text-main);
+      color: #ffffff;
+      border-color: var(--text-main);
+    }
+
+    /* メインリスト */
+    #pair-container { min-height: 300px; padding-bottom: 60px; }
+
+    /* 1スロット */
+    .pair-item {
+      display: flex;
+      gap: 8px;
+      padding: 10px;
+      border-radius: 2px;
+      margin-bottom: 8px;
+      align-items: flex-start;
+      background: var(--card-odd);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.015);
+      touch-action: none;
+      transition: border-color 0.2s;
+    }
+    
+    .pair-item.zebra-even {
+      background: var(--card-even);
+      border-color: #e0ded6;
+    }
+
+    .radio-select {
+      width: 18px;
+      height: 18px;
+      margin-top: 10px;
+      accent-color: var(--text-main);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .inputs-container { display: flex; flex: 1; gap: 6px; }
+    
+    /* テキストボックス（はっきりとした黒線枠で仕切る） */
+    .input-box {
+      border: 1px solid var(--input-border); /* ★黒線でくっきり囲む */
+      border-radius: 2px;
+      font-size: 13px;
+      background: #ffffff;
+      color: var(--text-main);
+      outline: none;
+      font-family: inherit;
+      font-weight: 400;
+      transition: all 0.15s ease;
+    }
+    .word-input {
+      width: 40%;
+      padding: 8px;
+      height: 38px;
+      flex-shrink: 0;
+      font-weight: 500;
+    }
+    .desc-input {
+      width: 60%;
+      padding: 8px;
+      min-height: 38px;
+      resize: vertical;
+      line-height: 1.4;
+      flex-shrink: 0;
+    }
+    .input-box:focus {
+      border-width: 1.5px;
+      border-color: #000000;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    /* 非表示時（黒のマスク処理） */
+    .input-box.hidden-text {
+      color: transparent !important;
+      background-color: var(--hidden-mask) !important;
+      border-color: var(--hidden-mask) !important;
+      cursor: pointer;
+    }
+
+    .drag-locked { opacity: 0.85; }
+
+    /* ハイライト指示 */
+    .pair-item.hover-combine { border: 1.5px solid var(--accent-gold) !important; background: #fdfbf7 !important; }
+    .group-container.hover-group { background: #e8e5dd !important; border-color: var(--accent-gold) !important; }
+
+    /* グループ枠 */
+    .group-container {
+      border: 1px dashed var(--group-border);
+      background: var(--group-bg);
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 2px;
+      touch-action: none;
+    }
+    .group-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .group-handle { cursor: grab; font-size: 14px; color: var(--text-muted); padding: 0 4px; font-weight: 300; }
+    .group-title { font-weight: 500; border: none; background: transparent; font-size: 13px; letter-spacing: 0.05em; color: var(--text-main); border-bottom: 1px solid var(--group-border); flex: 1; outline: none; font-family: inherit; }
+    .group-body { min-height: 40px; }
+
+    /* ゴースト要素 */
+    .dragging-ghost {
+      position: fixed;
+      pointer-events: none !important;
+      z-index: 9999;
+      opacity: 0.92;
+      transform: scale(1.01);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.08) !important;
+    }
+    .is-dragging { opacity: 0.2; }
+  </style>
+</head>
+<body>
+
+  <!-- 1. タイトルページ -->
+  <div id="title-page" class="page active">
+    <h1 class="app-header-title">Word Book</h1>
+    <button class="btn-primary" onclick="createNewMemo()" style="width: 100%; padding: 14px; letter-spacing: 0.15em;">＋ 新しいメモを作成</button>
+    <ul id="memo-list" class="memo-list"></ul>
+    
+    <div class="reset-area">
+      <button class="btn-reset" onclick="clearAllData()">保存データを初期化する</button>
+    </div>
+  </div>
+
+  <!-- 2. メモページ -->
+  <div id="memo-page" class="page">
+    <div class="sticky-header-container">
+      <div class="header">
+        <button class="btn-secondary" onclick="goToTitle()">← 戻る</button>
+        <h2 id="current-memo-title" contenteditable="true" onblur="updateMemoTitle(this.innerText)">メモタイトル</h2>
+      </div>
+
+      <div class="control-panel">
+        <button class="btn-primary" onclick="addPair()">＋ スロット追加</button>
+        <button class="btn-danger" onclick="deleteSelected()">選択削除</button>
+      </div>
+
+      <!-- スロット端とピクセル単位でアラインメント調整した非表示ボタン領域 -->
+      <div class="toggle-header">
+        <div class="toggle-header-offset"></div>
+        <div class="toggle-buttons-wrapper">
+          <div id="btn-toggle-word" class="toggle-btn btn-toggle-word" onclick="toggleTargetState('word')">単語を非表示</div>
+          <div id="btn-toggle-desc" class="toggle-btn btn-toggle-desc" onclick="toggleTargetState('desc')">説明を非表示</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="pair-container"></div>
+  </div>
+
+  <script>
+    // --- データ管理 ---
+    let appData = loadInitialData();
+    let currentMemoId = null;
+
+    function loadInitialData() {
+      try {
+        const raw = localStorage.getItem('word_app_data');
+        if (!raw) return { memos: [] };
+        const parsed = JSON.parse(raw);
+        if (!parsed || !Array.isArray(parsed.memos)) return { memos: [] };
+        parsed.memos = parsed.memos.filter(m => m && typeof m.id === 'string' && Array.isArray(m.items));
+        return parsed;
+      } catch (e) {
+        return { memos: [] };
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem('word_app_data', JSON.stringify(appData));
+    }
+
+    function clearAllData() {
+      if (confirm('すべてのメモを消去して初期状態に戻しますか？')) {
+        localStorage.removeItem('word_app_data');
+        appData = { memos: [] };
+        renderTitlePage();
+      }
+    }
+
+    function showPage(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+    }
+
+    function goToTitle() {
+      currentMemoId = null;
+      renderTitlePage();
+      showPage('title-page');
+    }
+
+    // --- タイトルページ機能 ---
+    function renderTitlePage() {
+      const listEl = document.getElementById('memo-list');
+      listEl.innerHTML = '';
+
+      if (appData.memos.length === 0) {
+        listEl.innerHTML = '<li class="empty-message">メモがありません。<br>「新しいメモを作成」を押して登録してください。</li>';
+        return;
+      }
+
+      appData.memos.forEach(memo => {
+        const li = document.createElement('li');
+        li.className = 'memo-item';
+        li.innerHTML = `
+          <span class="memo-item-title" onclick="openMemo('${memo.id}')">${escapeHtml(memo.title)}</span>
+          <div class="memo-item-actions">
+            <button class="btn-rename" onclick="renameMemo('${memo.id}')">編集</button>
+            <button class="btn-danger" onclick="deleteMemo('${memo.id}')">削除</button>
+          </div>
+        `;
+        listEl.appendChild(li);
+      });
+    }
+
+    function createNewMemo() {
+      const titleInput = prompt('メモのタイトルを入力してください:', '新しいメモ');
+      if (titleInput === null) return;
+
+      const trimmedTitle = titleInput.trim() || '無題のメモ';
+      const newMemo = {
+        id: 'memo_' + Date.now(),
+        title: trimmedTitle,
+        items: []
+      };
+
+      appData.memos.push(newMemo);
+      saveData();
+      openMemo(newMemo.id);
+    }
+
+    function renameMemo(id) {
+      const memo = appData.memos.find(m => m.id === id);
+      if (!memo) return;
+
+      const newTitle = prompt('新しいタイトルを入力してください:', memo.title);
+      if (newTitle === null) return;
+
+      const trimmed = newTitle.trim();
+      if (trimmed) {
+        memo.title = trimmed;
+        saveData();
+        renderTitlePage();
+      }
+    }
+
+    function deleteMemo(id) {
+      if (confirm('このメモを削除しますか？')) {
+        appData.memos = appData.memos.filter(m => m.id !== id);
+        saveData();
+        renderTitlePage();
+      }
+    }
+
+    // --- メモページ機能 ---
+    function openMemo(id) {
+      currentMemoId = id;
+      const memo = appData.memos.find(m => m.id === id);
+      if (!memo) { goToTitle(); return; }
+      document.getElementById('current-memo-title').innerText = memo.title;
+      renderMemoContent();
+      showPage('memo-page');
+    }
+
+    function updateMemoTitle(newTitle) {
+      const memo = appData.memos.find(m => m.id === currentMemoId);
+      if (memo) { memo.title = newTitle; saveData(); }
+    }
+
+    function renderMemoContent() {
+      const memo = appData.memos.find(m => m.id === currentMemoId);
+      if (!memo) return;
+
+      const container = document.getElementById('pair-container');
+      container.innerHTML = '';
+
+      let slotCounter = 0;
+
+      memo.items.forEach((item, index) => {
+        if (item.type === 'pair') {
+          slotCounter++;
+          container.appendChild(createPairElement(item, [index], slotCounter));
+        } else if (item.type === 'group') {
+          const groupEl = createGroupElement(item, index, slotCounter);
+          slotCounter += item.items.length;
+          container.appendChild(groupEl);
+        }
+      });
+
+      updateButtonUI();
+    }
+
+    function createPairElement(pair, path, countIndex) {
+      const div = document.createElement('div');
+      div.className = 'pair-item' + (countIndex % 2 === 0 ? ' zebra-even' : '');
+      div.dataset.type = 'pair';
+      div.dataset.path = JSON.stringify(path);
+
+      div.innerHTML = `
+        <input type="checkbox" class="radio-select" data-path='${JSON.stringify(path)}'>
+        <div class="inputs-container">
+          <input type="text" class="input-box word-input" 
+                 value="${escapeHtml(pair.word)}" placeholder="単語" 
+                 oninput="updateText('${JSON.stringify(path)}', 'word', this.value)"
+                 onclick="unhideText(this)">
+          <textarea class="input-box desc-input" 
+                    placeholder="説明 (改行可)" 
+                    oninput="updateText('${JSON.stringify(path)}', 'desc', this.value)"
+                    onclick="unhideText(this)">${escapeHtml(pair.desc)}</textarea>
+        </div>
+      `;
+      setupPointerDrag(div);
+      return div;
+    }
+
+    function createGroupElement(group, groupIndex, currentCounter) {
+      const groupDiv = document.createElement('div');
+      groupDiv.className = 'group-container';
+      groupDiv.dataset.type = 'group';
+      groupDiv.dataset.path = JSON.stringify([groupIndex]);
+
+      const headerDiv = document.createElement('div');
+      headerDiv.className = 'group-header';
+      headerDiv.innerHTML = `
+        <span class="group-handle">☰</span>
+        <input type="text" class="group-title" value="${escapeHtml(group.name)}" placeholder="グループ名">
+      `;
+
+      headerDiv.querySelector('.group-title').oninput = (e) => {
+        const memo = appData.memos.find(m => m.id === currentMemoId);
+        if (memo) {
+          memo.items[groupIndex].name = e.target.value;
+          saveData();
+        }
+      };
+
+      const bodyDiv = document.createElement('div');
+      bodyDiv.className = 'group-body';
+
+      group.items.forEach((pair, pairIndex) => {
+        currentCounter++;
+        bodyDiv.appendChild(createPairElement(pair, [groupIndex, pairIndex], currentCounter));
+      });
+
+      groupDiv.appendChild(headerDiv);
+      groupDiv.appendChild(bodyDiv);
+
+      setupPointerDrag(groupDiv, headerDiv.querySelector('.group-handle'));
+      return groupDiv;
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function updateText(pathStr, field, value) {
+      const path = JSON.parse(pathStr);
+      const memo = appData.memos.find(m => m.id === currentMemoId);
+      if (!memo) return;
+
+      if (path.length === 1) memo.items[path[0]][field] = value;
+      else if (path.length === 2) memo.items[path[0]].items[path[1]][field] = value;
+      saveData();
+    }
+
+    function addPair() {
+      const memo = appData.memos.find(m => m.id === currentMemoId);
+      if (!memo) return;
+
+      memo.items.push({ type: 'pair', word: '', desc: '' });
+      saveData();
+      renderMemoContent();
+    }
+
+    function deleteSelected() {
+      const checkboxes = document.querySelectorAll('.radio-select:checked');
+      if (checkboxes.length === 0) return alert('削除する項目を選択してください。');
+
+      const memo = appData.memos.find(m => m.id === currentMemoId);
+      if (!memo) return;
+
+      const paths = Array.from(checkboxes).map(cb => JSON.parse(cb.dataset.path));
+      
+      paths.forEach(path => {
+        if (path.length === 2) memo.items[path[0]].items[path[1]] = null;
+        else if (path.length === 1) memo.items[path[0]] = null;
+      });
+
+      memo.items = memo.items.filter(item => {
+        if (!item) return false;
+        if (item.type === 'group') item.items = item.items.filter(p => p !== null);
+        return true;
+      });
+
+      cleanupGroups(memo);
+      saveData();
+      renderMemoContent();
+    }
+
+    function toggleTargetState(target) {
+      const selector = target === 'word' ? '.word-input' : '.desc-input';
+      const inputs = document.querySelectorAll(selector);
+      
+      const hasHidden = Array.from(inputs).some(input => input.classList.contains('hidden-text'));
+
+      inputs.forEach(input => {
+        if (hasHidden) {
+          input.classList.remove('hidden-text');
+        } else {
+          input.classList.add('hidden-text');
+        }
+      });
+
+      updateButtonUI();
+    }
+
+    function unhideText(inputEl) {
+      if (inputEl.classList.contains('hidden-text')) {
+        inputEl.classList.remove('hidden-text');
+      }
+      updateButtonUI();
+    }
+
+    function updateButtonUI() {
+      const wordInputs = document.querySelectorAll('.word-input');
+      const descInputs = document.querySelectorAll('.desc-input');
+
+      const hasHiddenWord = Array.from(wordInputs).some(i => i.classList.contains('hidden-text'));
+      const hasHiddenDesc = Array.from(descInputs).some(i => i.classList.contains('hidden-text'));
+
+      const btnWord = document.getElementById('btn-toggle-word');
+      const btnDesc = document.getElementById('btn-toggle-desc');
+
+      if (btnWord) {
+        btnWord.innerText = hasHiddenWord ? '単語を表示' : '単語を非表示';
+        btnWord.classList.toggle('active-show', hasHiddenWord);
+      }
+      if (btnDesc) {
+        btnDesc.innerText = hasHiddenDesc ? '説明を表示' : '説明を非表示';
+        btnDesc.classList.toggle('active-show', hasHiddenDesc);
+      }
+
+      const isAnyHidden = hasHiddenWord || hasHiddenDesc;
+      document.querySelectorAll('.pair-item, .group-container').forEach(el => {
+        el.classList.toggle('drag-locked', isAnyHidden);
+      });
+    }
+
+    function isHiddenModeActive() {
+      const hiddenElements = Array.from(document.querySelectorAll('.hidden-text')).filter(el => !el.closest('.dragging-ghost'));
+      return hiddenElements.length > 0;
+    }
+
+    // ==========================================
+    // ドラッグ＆ドロップ処理
+    // ==========================================
+    let dragTarget = null;
+    let ghostEl = null;
+    let offsetY = 0;
+
+    function setupPointerDrag(element, handleEl = null) {
+      const trigger = handleEl || element;
+
+      trigger.addEventListener('pointerdown', (e) => {
+        if (['INPUT', 'TEXTAREA', 'BUTTON'].includes(e.target.tagName)) return;
+        if (isHiddenModeActive()) return;
+
+        dragTarget = element;
+        const rect = element.getBoundingClientRect();
+        offsetY = e.clientY - rect.top;
+
+        try { trigger.setPointerCapture(e.pointerId); } catch(err) {}
+
+        ghostEl = element.cloneNode(true);
+        ghostEl.classList.add('dragging-ghost');
+        ghostEl.removeAttribute('id');
+        ghostEl.style.top = (e.clientY - offsetY) + 'px';
+        ghostEl.style.left = rect.left + 'px';
+        ghostEl.style.width = rect.width + 'px';
+        document.body.appendChild(ghostEl);
+
+        element.classList.add('is-dragging');
+
+        const onPointerMove = (me) => {
+          if (!ghostEl) return;
+          ghostEl.style.top = (me.clientY - offsetY) + 'px';
+
+          ghostEl.style.display = 'none';
+          let targetUnder = document.elementFromPoint(me.clientX, me.clientY);
+          ghostEl.style.display = 'block';
+
+          clearHighlights();
+
+          if (!targetUnder) return;
+
+          const hoveredPair = targetUnder.closest('.pair-item');
+          const hoveredGroup = targetUnder.closest('.group-container');
+
+          if (hoveredGroup && hoveredGroup !== dragTarget && dragTarget.dataset.type === 'pair') {
+            hoveredGroup.classList.add('hover-group');
+          } else if (hoveredPair && hoveredPair !== dragTarget && dragTarget.dataset.type === 'pair') {
+            hoveredPair.classList.add('hover-combine');
+          }
+        };
+
+        const onPointerUp = (ue) => {
+          try { trigger.releasePointerCapture(ue.pointerId); } catch(err) {}
+
+          trigger.removeEventListener('pointermove', onPointerMove);
+          trigger.removeEventListener('pointerup', onPointerUp);
+
+          if (!ghostEl) return;
+
+          ghostEl.style.display = 'none';
+          let targetUnder = document.elementFromPoint(ue.clientX, ue.clientY);
+          
+          if (ghostEl.parentNode) {
+            ghostEl.parentNode.removeChild(ghostEl);
+          }
+          ghostEl = null;
+
+          if (dragTarget) {
+            dragTarget.classList.remove('is-dragging');
+          }
+          clearHighlights();
+
+          handleDropAction(dragTarget, targetUnder);
+          dragTarget = null;
+        };
+
+        trigger.addEventListener('pointermove', onPointerMove);
+        trigger.addEventListener('pointerup', onPointerUp);
+      });
+    }
+
+    function clearHighlights() {
+      document.querySelectorAll('.hover-combine').forEach(el => el.classList.remove('hover-combine'));
+      document.querySelectorAll('.hover-group').forEach(el => el.classList.remove('hover-group'));
+    }
+
+    function handleDropAction(draggedEl, targetUnder) {
+      if (!draggedEl) {
+        renderMemoContent();
+        return;
+      }
+
+      const memo = appData.memos.find(m => m.id === currentMemoId);
+      if (!memo) {
+        renderMemoContent();
+        return;
+      }
+
+      const draggedPath = JSON.parse(draggedEl.dataset.path);
+
+      if (!targetUnder) {
+        renderMemoContent();
+        return;
+      }
+
+      const targetGroup = targetUnder.closest('.group-container');
+      const targetPair = targetUnder.closest('.pair-item');
+      const rootContainer = targetUnder.closest('#pair-container');
+
+      // 1. 【既存グループに追加】
+      if (targetGroup && targetGroup !== draggedEl && draggedEl.dataset.type === 'pair') {
+        const draggedData = getAndRemoveDataByPath(memo, draggedPath);
+        const groupIndex = JSON.parse(targetGroup.dataset.path)[0];
+        memo.items[groupIndex].items.push(draggedData);
+        cleanupGroups(memo);
+        saveData();
+      } 
+      // 2. 【新規グループ作成】
+      else if (targetPair && targetPair !== draggedEl && draggedEl.dataset.type === 'pair') {
+        const draggedData = getAndRemoveDataByPath(memo, draggedPath);
+        const targetPath = JSON.parse(targetPair.dataset.path);
+        const targetData = memo.items[targetPath[0]];
+        
+        memo.items[targetPath[0]] = {
+          type: 'group',
+          name: '新しいグループ',
+          items: [targetData, draggedData]
+        };
+        cleanupGroups(memo);
+        saveData();
+      } 
+      // 3. 【グループ解除】
+      else if (draggedPath.length === 2 && rootContainer && !targetGroup) {
+        const draggedData = getAndRemoveDataByPath(memo, draggedPath);
+        memo.items.push(draggedData);
+        cleanupGroups(memo);
+        saveData();
+      }
+
+      renderMemoContent();
+    }
+
+    function getAndRemoveDataByPath(memo, path) {
+      let data = null;
+      if (path.length === 1) {
+        data = memo.items[path[0]];
+        memo.items.splice(path[0], 1);
+      } else if (path.length === 2) {
+        data = memo.items[path[0]].items[path[1]];
+        memo.items[path[0]].items.splice(path[1], 1);
+      }
+      return data;
+    }
+
+    function cleanupGroups(memo) {
+      const newItems = [];
+
+      memo.items.forEach(item => {
+        if (item.type === 'group') {
+          if (item.items.length === 0) return;
+          if (item.items.length === 1) {
+            newItems.push(item.items[0]);
+            return;
+          }
+        }
+        newItems.push(item);
+      });
+
+      memo.items = newItems;
+    }
+
+    // 初期表示
+    renderTitlePage();
+  </script>
+</body>
+</html>
