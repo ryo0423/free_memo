@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Word Book</title>
+  
+  <!-- アプリ用アイコン（ファビコン / スマホホーム画面用アイコン） -->
   <link rel="icon" href="icon.PNG" type="image/png">
   <link rel="apple-touch-icon" href="icon.PNG">
 
@@ -110,7 +112,7 @@
       border: 1px solid var(--border-color);
       box-shadow: 0 4px 12px rgba(0,0,0,0.015);
     }
-    .memo-item-title { flex: 1; font-weight: 400; font-size: 14px; letter-spacing: 0.05em; color: var(--text-main); }
+    .memo-item-title { flex: 1; font-weight: 400; font-size: 14px; letter-spacing: 0.05em; color: var(--text-main); cursor: pointer; }
     .memo-item-actions { display: flex; gap: 8px; }
     .empty-message { text-align: center; color: var(--text-muted); margin-top: 50px; font-size: 13px; font-weight: 300; letter-spacing: 0.05em; }
 
@@ -149,7 +151,6 @@
       width: 100%;
     }
 
-    /* スロット内部の余白(10px) ＋ チェックボックス部(18px + 8px gap = 26px) を計算したオフセット領域 */
     .toggle-header-offset {
       width: 36px; /* 10px (pair-item padding-left) + 18px (checkbox width) + 8px (gap) = 36px */
       flex-shrink: 0;
@@ -158,8 +159,8 @@
     .toggle-buttons-wrapper {
       display: flex;
       flex: 1;
-      gap: 6px; /* スロット内部のinputs-container gap(6px)と完全一致 */
-      padding-right: 10px; /* pair-item padding-right(10px)と完全一致 */
+      gap: 6px;
+      padding-right: 10px;
     }
 
     .toggle-btn {
@@ -167,7 +168,7 @@
       padding: 8px 4px;
       background: #ffffff;
       color: var(--text-main);
-      border: 1px solid var(--input-border); /* テキストボックスと同じ黒細線 */
+      border: 1px solid var(--input-border);
       border-radius: 2px;
       font-size: 11px;
       font-weight: 400;
@@ -179,7 +180,6 @@
       transition: all 0.2s;
     }
 
-    /* 比率をスロットの入力欄(40%:60%)と一致 */
     .btn-toggle-word { width: 40%; flex-shrink: 0; }
     .btn-toggle-desc { width: 60%; flex-shrink: 0; }
 
@@ -222,9 +222,9 @@
     }
     .inputs-container { display: flex; flex: 1; gap: 6px; }
     
-    /* テキストボックス（はっきりとした黒線枠で仕切る） */
+    /* テキストボックス（黒線枠で明瞭化） */
     .input-box {
-      border: 1px solid var(--input-border); /* ★黒線でくっきり囲む */
+      border: 1px solid var(--input-border);
       border-radius: 2px;
       font-size: 13px;
       background: #ffffff;
@@ -255,7 +255,7 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
 
-    /* 非表示時（黒のマスク処理） */
+    /* 非表示時 */
     .input-box.hidden-text {
       color: transparent !important;
       background-color: var(--hidden-mask) !important;
@@ -321,7 +321,6 @@
         <button class="btn-danger" onclick="deleteSelected()">選択削除</button>
       </div>
 
-      <!-- スロット端とピクセル単位でアラインメント調整した非表示ボタン領域 -->
       <div class="toggle-header">
         <div class="toggle-header-offset"></div>
         <div class="toggle-buttons-wrapper">
