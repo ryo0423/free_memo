@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Word Book</title>
+  <title>free memo</title>
   
-  <!-- アプリ用アイコン（ファビコン / スマホホーム画面用アイコン） -->
+  <!-- アプリ用アイコン -->
   <link rel="icon" href="icon.PNG" type="image/png">
   <link rel="apple-touch-icon" href="icon.PNG">
 
@@ -14,17 +14,17 @@
 
     :root {
       /* SHIRO風：ミニマル・上質・洗練のカラーパレット */
-      --bg-color: #fbfbf9;        /* 柔らかなオフホワイト */
-      --card-odd: #ffffff;        /* 奇数スロット：ピュアホワイト */
-      --card-even: #f5f4f0;       /* 偶数スロット：ニュアンスグレー */
-      --text-main: #2b2b2a;       /* 墨のようなブラック */
-      --text-muted: #8c8b88;      /* 繊細なグレー */
-      --accent-gold: #c5a059;     /* シャンパンゴールド */
-      --border-color: #e2e0d8;    /* 極細の境界線 */
-      --input-border: #333333;    /* テキストボックス明確化用：黒細線 */
+      --bg-color: #fbfbf9;
+      --card-odd: #ffffff;
+      --card-even: #f5f4f0;
+      --text-main: #2b2b2a;
+      --text-muted: #8c8b88;
+      --accent-gold: #c5a059;
+      --border-color: #e2e0d8;
+      --input-border: #333333;
       --group-bg: #efece6;
       --group-border: #d5d1c8;
-      --hidden-mask: #333333;     /* 非表示時：黒マスク */
+      --hidden-mask: #333333;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
@@ -67,33 +67,11 @@
     }
     button:active { opacity: 0.8; transform: translateY(1px); }
     
-    .btn-primary {
-      background: var(--text-main);
-      color: #ffffff;
-      border: 1px solid var(--text-main);
-    }
-
-    .btn-secondary {
-      background: transparent;
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-    }
+    .btn-primary { background: var(--text-main); color: #ffffff; border: 1px solid var(--text-main); }
+    .btn-secondary { background: transparent; color: var(--text-main); border: 1px solid var(--border-color); }
     .btn-secondary:active { background: #f0eee8; }
-
-    .btn-danger {
-      background: transparent;
-      color: #a33b3b;
-      border: 1px solid #f0d5d5;
-    }
-
-    .btn-rename {
-      padding: 4px 10px;
-      font-size: 11px;
-      border-radius: 2px;
-      background: transparent;
-      border: 1px solid var(--border-color);
-      color: var(--text-muted);
-    }
+    .btn-danger { background: transparent; color: #a33b3b; border: 1px solid #f0d5d5; }
+    .btn-rename { padding: 4px 10px; font-size: 11px; border-radius: 2px; background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); }
 
     /* 画面切り替え */
     .page { display: none; }
@@ -132,37 +110,16 @@
       border-bottom: 1px solid var(--border-color);
     }
 
-    .header {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 10px;
-      padding: 4px 0;
-    }
+    .header { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; padding: 4px 0; }
     .header h2 { font-size: 16px; font-weight: 400; letter-spacing: 0.08em; color: var(--text-main); flex: 1; outline: none; border-bottom: 1px solid transparent; transition: border 0.2s; }
     .header h2:focus { border-bottom-color: var(--accent-gold); }
 
     .control-panel { display: flex; gap: 8px; margin-bottom: 10px; }
 
-    /* 非表示ボタン：スロットカード全体の左右両端と幅を完璧にアライン */
-    .toggle-header {
-      display: flex;
-      align-items: center;
-      width: 100%;
-    }
-
-    .toggle-header-offset {
-      width: 36px; /* 10px (pair-item padding-left) + 18px (checkbox width) + 8px (gap) = 36px */
-      flex-shrink: 0;
-    }
-
-    .toggle-buttons-wrapper {
-      display: flex;
-      flex: 1;
-      gap: 6px;
-      padding-right: 10px;
-    }
-
+    /* 非表示ボタン：アラインメント調整 */
+    .toggle-header { display: flex; align-items: center; width: 100%; }
+    .toggle-header-offset { width: 36px; flex-shrink: 0; }
+    .toggle-buttons-wrapper { display: flex; flex: 1; gap: 6px; padding-right: 10px; }
     .toggle-btn {
       text-align: center;
       padding: 8px 4px;
@@ -179,15 +136,9 @@
       text-overflow: ellipsis;
       transition: all 0.2s;
     }
-
     .btn-toggle-word { width: 40%; flex-shrink: 0; }
     .btn-toggle-desc { width: 60%; flex-shrink: 0; }
-
-    .toggle-btn.active-show {
-      background: var(--text-main);
-      color: #ffffff;
-      border-color: var(--text-main);
-    }
+    .toggle-btn.active-show { background: var(--text-main); color: #ffffff; border-color: var(--text-main); }
 
     /* メインリスト */
     #pair-container { min-height: 300px; padding-bottom: 60px; }
@@ -206,23 +157,12 @@
       touch-action: none;
       transition: border-color 0.2s;
     }
-    
-    .pair-item.zebra-even {
-      background: var(--card-even);
-      border-color: #e0ded6;
-    }
+    .pair-item.zebra-even { background: var(--card-even); border-color: #e0ded6; }
 
-    .radio-select {
-      width: 18px;
-      height: 18px;
-      margin-top: 10px;
-      accent-color: var(--text-main);
-      cursor: pointer;
-      flex-shrink: 0;
-    }
+    .radio-select { width: 18px; height: 18px; margin-top: 10px; accent-color: var(--text-main); cursor: pointer; flex-shrink: 0; }
     .inputs-container { display: flex; flex: 1; gap: 6px; }
     
-    /* テキストボックス（黒線枠で明瞭化） */
+    /* テキストボックス */
     .input-box {
       border: 1px solid var(--input-border);
       border-radius: 2px;
@@ -232,28 +172,21 @@
       outline: none;
       font-family: inherit;
       font-weight: 400;
-      transition: all 0.15s ease;
+      transition: border-color 0.15s ease;
     }
-    .word-input {
-      width: 40%;
-      padding: 8px;
-      height: 38px;
-      flex-shrink: 0;
-      font-weight: 500;
-    }
+    .word-input { width: 40%; padding: 8px; height: 38px; flex-shrink: 0; font-weight: 500; }
+    
+    /* 自動高さ伸縮対応textarea */
     .desc-input {
       width: 60%;
       padding: 8px;
       min-height: 38px;
-      resize: vertical;
+      resize: none; /* 手動リサイズ無効化（自動調整に委ねる） */
       line-height: 1.4;
       flex-shrink: 0;
+      overflow: hidden; /* スクロールバーを隠して自動で伸ばす */
     }
-    .input-box:focus {
-      border-width: 1.5px;
-      border-color: #000000;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    }
+    .input-box:focus { border-width: 1.5px; border-color: #000000; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
 
     /* 非表示時 */
     .input-box.hidden-text {
@@ -452,9 +385,18 @@
       if (memo) { memo.title = newTitle; saveData(); }
     }
 
+    // テキストエリアの高さを文字量に合わせて自動調整
+    function autoResize(textarea) {
+      textarea.style.height = '38px';
+      textarea.style.height = Math.max(38, textarea.scrollHeight) + 'px';
+    }
+
     function renderMemoContent() {
       const memo = appData.memos.find(m => m.id === currentMemoId);
       if (!memo) return;
+
+      // 破損データクリーンアップ
+      memo.items = (memo.items || []).filter(item => item && (item.type === 'pair' || item.type === 'group'));
 
       const container = document.getElementById('pair-container');
       container.innerHTML = '';
@@ -467,18 +409,24 @@
           container.appendChild(createPairElement(item, [index], slotCounter));
         } else if (item.type === 'group') {
           const groupEl = createGroupElement(item, index, slotCounter);
-          slotCounter += item.items.length;
+          slotCounter += (item.items || []).length;
           container.appendChild(groupEl);
         }
       });
 
+      // 描画後にすべてのtextareaの高さを自動調整
+      document.querySelectorAll('.desc-input').forEach(el => autoResize(el));
       updateButtonUI();
     }
 
+    // ユニークIDを付与してスロット生成
     function createPairElement(pair, path, countIndex) {
+      if (!pair.id) pair.id = 'pair_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+
       const div = document.createElement('div');
       div.className = 'pair-item' + (countIndex % 2 === 0 ? ' zebra-even' : '');
       div.dataset.type = 'pair';
+      div.dataset.id = pair.id;
       div.dataset.path = JSON.stringify(path);
 
       div.innerHTML = `
@@ -486,11 +434,11 @@
         <div class="inputs-container">
           <input type="text" class="input-box word-input" 
                  value="${escapeHtml(pair.word)}" placeholder="単語" 
-                 oninput="updateText('${JSON.stringify(path)}', 'word', this.value)"
+                 oninput="updateText('${pair.id}', 'word', this.value)"
                  onclick="unhideText(this)">
           <textarea class="input-box desc-input" 
                     placeholder="説明 (改行可)" 
-                    oninput="updateText('${JSON.stringify(path)}', 'desc', this.value)"
+                    oninput="autoResize(this); updateText('${pair.id}', 'desc', this.value)"
                     onclick="unhideText(this)">${escapeHtml(pair.desc)}</textarea>
         </div>
       `;
@@ -499,9 +447,12 @@
     }
 
     function createGroupElement(group, groupIndex, currentCounter) {
+      if (!group.id) group.id = 'group_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+
       const groupDiv = document.createElement('div');
       groupDiv.className = 'group-container';
       groupDiv.dataset.type = 'group';
+      groupDiv.dataset.id = group.id;
       groupDiv.dataset.path = JSON.stringify([groupIndex]);
 
       const headerDiv = document.createElement('div');
@@ -513,7 +464,7 @@
 
       headerDiv.querySelector('.group-title').oninput = (e) => {
         const memo = appData.memos.find(m => m.id === currentMemoId);
-        if (memo) {
+        if (memo && memo.items[groupIndex]) {
           memo.items[groupIndex].name = e.target.value;
           saveData();
         }
@@ -522,6 +473,7 @@
       const bodyDiv = document.createElement('div');
       bodyDiv.className = 'group-body';
 
+      group.items = group.items || [];
       group.items.forEach((pair, pairIndex) => {
         currentCounter++;
         bodyDiv.appendChild(createPairElement(pair, [groupIndex, pairIndex], currentCounter));
@@ -538,13 +490,28 @@
       return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    function updateText(pathStr, field, value) {
-      const path = JSON.parse(pathStr);
+    // ID指定による堅牢なテキスト更新
+    function updateText(pairId, field, value) {
       const memo = appData.memos.find(m => m.id === currentMemoId);
       if (!memo) return;
 
-      if (path.length === 1) memo.items[path[0]][field] = value;
-      else if (path.length === 2) memo.items[path[0]].items[path[1]][field] = value;
+      let found = false;
+      for (let item of memo.items) {
+        if (item.type === 'pair' && item.id === pairId) {
+          item[field] = value;
+          found = true;
+          break;
+        } else if (item.type === 'group' && item.items) {
+          for (let p of item.items) {
+            if (p.id === pairId) {
+              p[field] = value;
+              found = true;
+              break;
+            }
+          }
+        }
+        if (found) break;
+      }
       saveData();
     }
 
@@ -552,7 +519,12 @@
       const memo = appData.memos.find(m => m.id === currentMemoId);
       if (!memo) return;
 
-      memo.items.push({ type: 'pair', word: '', desc: '' });
+      memo.items.push({
+        id: 'pair_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        type: 'pair',
+        word: '',
+        desc: ''
+      });
       saveData();
       renderMemoContent();
     }
@@ -567,13 +539,18 @@
       const paths = Array.from(checkboxes).map(cb => JSON.parse(cb.dataset.path));
       
       paths.forEach(path => {
-        if (path.length === 2) memo.items[path[0]].items[path[1]] = null;
-        else if (path.length === 1) memo.items[path[0]] = null;
+        if (path.length === 2 && memo.items[path[0]] && memo.items[path[0]].items) {
+          memo.items[path[0]].items[path[1]] = null;
+        } else if (path.length === 1) {
+          memo.items[path[0]] = null;
+        }
       });
 
       memo.items = memo.items.filter(item => {
         if (!item) return false;
-        if (item.type === 'group') item.items = item.items.filter(p => p !== null);
+        if (item.type === 'group') {
+          item.items = (item.items || []).filter(p => p !== null);
+        }
         return true;
       });
 
@@ -637,7 +614,7 @@
     }
 
     // ==========================================
-    // ドラッグ＆ドロップ処理
+    // 完全修復版 ドラッグ＆ドロップ処理
     // ==========================================
     let dragTarget = null;
     let ghostEl = null;
@@ -699,7 +676,7 @@
           ghostEl.style.display = 'none';
           let targetUnder = document.elementFromPoint(ue.clientX, ue.clientY);
           
-          if (ghostEl.parentNode) {
+          if (ghostEl && ghostEl.parentNode) {
             ghostEl.parentNode.removeChild(ghostEl);
           }
           ghostEl = null;
@@ -723,79 +700,111 @@
       document.querySelectorAll('.hover-group').forEach(el => el.classList.remove('hover-group'));
     }
 
+    // 破損を防ぐID安全ドロップロジック
     function handleDropAction(draggedEl, targetUnder) {
-      if (!draggedEl) {
-        renderMemoContent();
-        return;
-      }
+      if (!draggedEl) { renderMemoContent(); return; }
 
       const memo = appData.memos.find(m => m.id === currentMemoId);
-      if (!memo) {
-        renderMemoContent();
-        return;
-      }
+      if (!memo) { renderMemoContent(); return; }
 
-      const draggedPath = JSON.parse(draggedEl.dataset.path);
+      const draggedId = draggedEl.dataset.id;
+      if (!draggedId) { renderMemoContent(); return; }
 
-      if (!targetUnder) {
-        renderMemoContent();
-        return;
-      }
+      if (!targetUnder) { renderMemoContent(); return; }
 
-      const targetGroup = targetUnder.closest('.group-container');
-      const targetPair = targetUnder.closest('.pair-item');
+      const targetGroupEl = targetUnder.closest('.group-container');
+      const targetPairEl = targetUnder.closest('.pair-item');
       const rootContainer = targetUnder.closest('#pair-container');
 
-      // 1. 【既存グループに追加】
-      if (targetGroup && targetGroup !== draggedEl && draggedEl.dataset.type === 'pair') {
-        const draggedData = getAndRemoveDataByPath(memo, draggedPath);
-        const groupIndex = JSON.parse(targetGroup.dataset.path)[0];
-        memo.items[groupIndex].items.push(draggedData);
-        cleanupGroups(memo);
-        saveData();
-      } 
-      // 2. 【新規グループ作成】
-      else if (targetPair && targetPair !== draggedEl && draggedEl.dataset.type === 'pair') {
-        const draggedData = getAndRemoveDataByPath(memo, draggedPath);
-        const targetPath = JSON.parse(targetPair.dataset.path);
-        const targetData = memo.items[targetPath[0]];
+      // 1. 【グループへの追加】
+      if (targetGroupEl && targetGroupEl.dataset.id !== draggedId && draggedEl.dataset.type === 'pair') {
+        const targetGroupId = targetGroupEl.dataset.id;
+        const draggedData = findAndRemoveItemById(memo, draggedId);
         
-        memo.items[targetPath[0]] = {
-          type: 'group',
-          name: '新しいグループ',
-          items: [targetData, draggedData]
-        };
-        cleanupGroups(memo);
-        saveData();
+        if (draggedData) {
+          const groupObj = memo.items.find(i => i.id === targetGroupId);
+          if (groupObj && groupObj.type === 'group') {
+            groupObj.items = groupObj.items || [];
+            groupObj.items.push(draggedData);
+          }
+        }
       } 
-      // 3. 【グループ解除】
-      else if (draggedPath.length === 2 && rootContainer && !targetGroup) {
-        const draggedData = getAndRemoveDataByPath(memo, draggedPath);
-        memo.items.push(draggedData);
-        cleanupGroups(memo);
-        saveData();
+      // 2. 【ペア同士で重ねて新規グループ作成】
+      else if (targetPairEl && targetPairEl.dataset.id !== draggedId && draggedEl.dataset.type === 'pair') {
+        const targetPairId = targetPairEl.dataset.id;
+        
+        // 移動元とドロップ先が両方存在するか確認
+        const draggedData = findAndRemoveItemById(memo, draggedId);
+        if (draggedData) {
+          const targetIndex = memo.items.findIndex(i => i.id === targetPairId);
+          if (targetIndex !== -1) {
+            const targetData = memo.items[targetIndex];
+            memo.items[targetIndex] = {
+              id: 'group_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+              type: 'group',
+              name: '新しいグループ',
+              items: [targetData, draggedData]
+            };
+          } else {
+            // ドロップ先が既存グループ内ペアの場合
+            memo.items.forEach(item => {
+              if (item.type === 'group' && item.items) {
+                const idx = item.items.findIndex(p => p.id === targetPairId);
+                if (idx !== -1) {
+                  item.items.splice(idx, 0, draggedData);
+                }
+              }
+            });
+          }
+        }
+      } 
+      // 3. 【グループ解除（ルートに移動）】
+      else if (rootContainer && !targetGroupEl) {
+        // グループ内にあった場合のみ解除して外に出す
+        let isInsideGroup = false;
+        memo.items.forEach(item => {
+          if (item.type === 'group' && item.items) {
+            if (item.items.some(p => p.id === draggedId)) isInsideGroup = true;
+          }
+        });
+
+        if (isInsideGroup) {
+          const draggedData = findAndRemoveItemById(memo, draggedId);
+          if (draggedData) memo.items.push(draggedData);
+        }
       }
 
+      cleanupGroups(memo);
+      saveData();
       renderMemoContent();
     }
 
-    function getAndRemoveDataByPath(memo, path) {
-      let data = null;
-      if (path.length === 1) {
-        data = memo.items[path[0]];
-        memo.items.splice(path[0], 1);
-      } else if (path.length === 2) {
-        data = memo.items[path[0]].items[path[1]];
-        memo.items[path[0]].items.splice(path[1], 1);
-      }
-      return data;
+    // ID検索による要素の安全削除と抽出
+    function findAndRemoveItemById(memo, itemId) {
+      let extracted = null;
+      memo.items = memo.items.filter(item => {
+        if (item.id === itemId) {
+          extracted = item;
+          return false;
+        }
+        if (item.type === 'group' && item.items) {
+          const idx = item.items.findIndex(p => p.id === itemId);
+          if (idx !== -1) {
+            extracted = item.items[idx];
+            item.items.splice(idx, 1);
+          }
+        }
+        return true;
+      });
+      return extracted;
     }
 
     function cleanupGroups(memo) {
       const newItems = [];
-
-      memo.items.forEach(item => {
+      (memo.items || []).forEach(item => {
+        if (!item) return;
         if (item.type === 'group') {
+          item.items = (item.items || []).filter(Boolean);
           if (item.items.length === 0) return;
           if (item.items.length === 1) {
             newItems.push(item.items[0]);
@@ -804,7 +813,6 @@
         }
         newItems.push(item);
       });
-
       memo.items = newItems;
     }
 
