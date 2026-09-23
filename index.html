@@ -39,7 +39,6 @@
       line-height: 1.6;
     }
 
-    /* アプリタイトル */
     .app-header-title {
       font-family: 'Cormorant Garamond', serif;
       text-align: center;
@@ -48,10 +47,9 @@
       font-size: 28px;
       font-weight: 400;
       letter-spacing: 0.25em;
-      text-transform: uppercase;
+      text-transform: lowercase; /* free memo の雰囲気に合わせた小文字ニュアンス */
     }
 
-    /* ボタン共通 */
     button {
       cursor: pointer;
       padding: 10px 18px;
@@ -72,6 +70,14 @@
     .btn-secondary:active { background: #f0eee8; }
     .btn-danger { background: transparent; color: #a33b3b; border: 1px solid #f0d5d5; }
     .btn-rename { padding: 4px 10px; font-size: 11px; border-radius: 2px; background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); }
+
+    /* 非アクティブ（ボタン無効化）スタイル */
+    .btn-disabled {
+      opacity: 0.3 !important;
+      cursor: not-allowed !important;
+      pointer-events: none !important;
+      box-shadow: none !important;
+    }
 
     /* 画面切り替え */
     .page { display: none; }
@@ -114,9 +120,39 @@
     .header h2 { font-size: 16px; font-weight: 400; letter-spacing: 0.08em; color: var(--text-main); flex: 1; outline: none; border-bottom: 1px solid transparent; transition: border 0.2s; }
     .header h2:focus { border-bottom-color: var(--accent-gold); }
 
+    /* 洗練されたミニマルSVG鍵ロックボタン */
+    .btn-lock {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border-radius: 2px;
+      background: transparent;
+      border: 1px solid var(--input-border);
+      color: var(--text-main);
+      box-shadow: none;
+      transition: all 0.2s ease;
+    }
+    .btn-lock svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .btn-lock.locked {
+      background: var(--text-main);
+      color: #ffffff;
+      border-color: var(--text-main);
+    }
+
     .control-panel { display: flex; gap: 8px; margin-bottom: 10px; }
 
-    /* 非表示ボタン：アラインメント調整 */
+    /* 非表示ボタン */
     .toggle-header { display: flex; align-items: center; width: 100%; }
     .toggle-header-offset { width: 36px; flex-shrink: 0; }
     .toggle-buttons-wrapper { display: flex; flex: 1; gap: 6px; padding-right: 10px; }
@@ -154,12 +190,31 @@
       background: var(--card-odd);
       border: 1px solid var(--border-color);
       box-shadow: 0 2px 8px rgba(0,0,0,0.015);
-      touch-action: none;
-      transition: border-color 0.2s;
+      position: relative;
     }
     .pair-item.zebra-even { background: var(--card-even); border-color: #e0ded6; }
 
-    .radio-select { width: 18px; height: 18px; margin-top: 10px; accent-color: var(--text-main); cursor: pointer; flex-shrink: 0; }
+    .slot-left-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .drag-handle {
+      cursor: grab;
+      font-size: 14px;
+      color: var(--text-muted);
+      padding: 2px 4px;
+      user-select: none;
+      touch-action: none;
+      line-height: 1;
+    }
+    .drag-handle:active { cursor: grabbing; color: var(--text-main); }
+
+    .radio-select { width: 18px; height: 18px; accent-color: var(--text-main); cursor: pointer; flex-shrink: 0; }
     .inputs-container { display: flex; flex: 1; gap: 6px; }
     
     /* テキストボックス */
@@ -176,15 +231,14 @@
     }
     .word-input { width: 40%; padding: 8px; height: 38px; flex-shrink: 0; font-weight: 500; }
     
-    /* 自動高さ伸縮対応textarea */
     .desc-input {
       width: 60%;
       padding: 8px;
       min-height: 38px;
-      resize: none; /* 手動リサイズ無効化（自動調整に委ねる） */
+      resize: none;
       line-height: 1.4;
       flex-shrink: 0;
-      overflow: hidden; /* スクロールバーを隠して自動で伸ばす */
+      overflow: hidden;
     }
     .input-box:focus { border-width: 1.5px; border-color: #000000; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
 
@@ -196,7 +250,10 @@
       cursor: pointer;
     }
 
-    .drag-locked { opacity: 0.85; }
+    /* ロック状態のスタイル */
+    .screen-locked .drag-handle { cursor: not-allowed !important; opacity: 0.3; }
+    .screen-locked .input-box { pointer-events: none; background: rgba(0,0,0,0.02); }
+    .screen-locked button:not(.btn-lock), .screen-locked .radio-select { pointer-events: none; opacity: 0.5; }
 
     /* ハイライト指示 */
     .pair-item.hover-combine { border: 1.5px solid var(--accent-gold) !important; background: #fdfbf7 !important; }
@@ -209,10 +266,10 @@
       padding: 10px;
       margin-bottom: 12px;
       border-radius: 2px;
-      touch-action: none;
+      position: relative;
     }
     .group-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-    .group-handle { cursor: grab; font-size: 14px; color: var(--text-muted); padding: 0 4px; font-weight: 300; }
+    .group-handle { cursor: grab; font-size: 14px; color: var(--text-muted); padding: 0 4px; font-weight: 300; touch-action: none; }
     .group-title { font-weight: 500; border: none; background: transparent; font-size: 13px; letter-spacing: 0.05em; color: var(--text-main); border-bottom: 1px solid var(--group-border); flex: 1; outline: none; font-family: inherit; }
     .group-body { min-height: 40px; }
 
@@ -226,13 +283,39 @@
       box-shadow: 0 12px 30px rgba(0,0,0,0.08) !important;
     }
     .is-dragging { opacity: 0.2; }
+
+    /* モーダル */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(2px);
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 2px;
+      width: 280px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      text-align: center;
+    }
+    .modal-box p { font-size: 13px; font-weight: 500; margin-bottom: 4px; color: var(--text-main); }
+    .modal-box button { width: 100%; }
   </style>
 </head>
 <body>
 
   <!-- 1. タイトルページ -->
   <div id="title-page" class="page active">
-    <h1 class="app-header-title">Word Book</h1>
+    <h1 class="app-header-title">free memo</h1>
     <button class="btn-primary" onclick="createNewMemo()" style="width: 100%; padding: 14px; letter-spacing: 0.15em;">＋ 新しいメモを作成</button>
     <ul id="memo-list" class="memo-list"></ul>
     
@@ -247,10 +330,17 @@
       <div class="header">
         <button class="btn-secondary" onclick="goToTitle()">← 戻る</button>
         <h2 id="current-memo-title" contenteditable="true" onblur="updateMemoTitle(this.innerText)">メモタイトル</h2>
+        
+        <!-- シンプルなSVGシルエットのロックボタン -->
+        <button id="btn-lock" class="btn-lock" onclick="toggleScreenLock()" title="画面固定切替">
+          <svg id="lock-icon" viewBox="0 0 24 24">
+            <!-- JavaScriptでPathを切り替え -->
+          </svg>
+        </button>
       </div>
 
       <div class="control-panel">
-        <button class="btn-primary" onclick="addPair()">＋ スロット追加</button>
+        <button id="btn-add-pair" class="btn-primary" onclick="addPair()">＋ スロット追加</button>
         <button class="btn-danger" onclick="deleteSelected()">選択削除</button>
       </div>
 
@@ -266,10 +356,25 @@
     <div id="pair-container"></div>
   </div>
 
+  <!-- 挿入位置選択モーダル -->
+  <div id="add-modal" class="modal-overlay">
+    <div class="modal-box">
+      <p>スロットの追加位置を選択してください</p>
+      <button class="btn-primary" onclick="confirmAddPair('above')">選択スロットの【上】に追加</button>
+      <button class="btn-primary" onclick="confirmAddPair('below')">選択スロットの【下】に追加</button>
+      <button class="btn-secondary" onclick="closeAddModal()">キャンセル</button>
+    </div>
+  </div>
+
   <script>
     // --- データ管理 ---
     let appData = loadInitialData();
     let currentMemoId = null;
+    let isScreenLocked = false;
+
+    // SVG鍵アイコンパス定義
+    const SVG_UNLOCKED_PATH = '<rect x="5" y="11" width="14" height="10" rx="1.5"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/>';
+    const SVG_LOCKED_PATH = '<rect x="5" y="11" width="14" height="10" rx="1.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>';
 
     function loadInitialData() {
       try {
@@ -303,8 +408,33 @@
 
     function goToTitle() {
       currentMemoId = null;
+      if (isScreenLocked) toggleScreenLock();
       renderTitlePage();
       showPage('title-page');
+    }
+
+    // --- ロック機能 ---
+    function toggleScreenLock() {
+      isScreenLocked = !isScreenLocked;
+      const btn = document.getElementById('btn-lock');
+      const memoPage = document.getElementById('memo-page');
+
+      updateLockIcon();
+
+      if (isScreenLocked) {
+        btn.classList.add('locked');
+        memoPage.classList.add('screen-locked');
+      } else {
+        btn.classList.remove('locked');
+        memoPage.classList.remove('screen-locked');
+      }
+    }
+
+    function updateLockIcon() {
+      const svg = document.getElementById('lock-icon');
+      if (svg) {
+        svg.innerHTML = isScreenLocked ? SVG_LOCKED_PATH : SVG_UNLOCKED_PATH;
+      }
     }
 
     // --- タイトルページ機能 ---
@@ -376,6 +506,7 @@
       const memo = appData.memos.find(m => m.id === id);
       if (!memo) { goToTitle(); return; }
       document.getElementById('current-memo-title').innerText = memo.title;
+      updateLockIcon();
       renderMemoContent();
       showPage('memo-page');
     }
@@ -385,7 +516,6 @@
       if (memo) { memo.title = newTitle; saveData(); }
     }
 
-    // テキストエリアの高さを文字量に合わせて自動調整
     function autoResize(textarea) {
       textarea.style.height = '38px';
       textarea.style.height = Math.max(38, textarea.scrollHeight) + 'px';
@@ -395,7 +525,6 @@
       const memo = appData.memos.find(m => m.id === currentMemoId);
       if (!memo) return;
 
-      // 破損データクリーンアップ
       memo.items = (memo.items || []).filter(item => item && (item.type === 'pair' || item.type === 'group'));
 
       const container = document.getElementById('pair-container');
@@ -414,12 +543,32 @@
         }
       });
 
-      // 描画後にすべてのtextareaの高さを自動調整
       document.querySelectorAll('.desc-input').forEach(el => autoResize(el));
+      
+      // チェックボックスイベントリスナー登録＆ボタン非アクティブ状態更新
+      setupCheckboxListeners();
       updateButtonUI();
     }
 
-    // ユニークIDを付与してスロット生成
+    function setupCheckboxListeners() {
+      document.querySelectorAll('.radio-select').forEach(cb => {
+        cb.addEventListener('change', updateAddButtonState);
+      });
+    }
+
+    // 2つ以上選択されている場合、スロット追加ボタンを非アクティブ化
+    function updateAddButtonState() {
+      const checkedCount = document.querySelectorAll('.radio-select:checked').length;
+      const btnAdd = document.getElementById('btn-add-pair');
+      if (btnAdd) {
+        if (checkedCount >= 2) {
+          btnAdd.classList.add('btn-disabled');
+        } else {
+          btnAdd.classList.remove('btn-disabled');
+        }
+      }
+    }
+
     function createPairElement(pair, path, countIndex) {
       if (!pair.id) pair.id = 'pair_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
 
@@ -430,7 +579,10 @@
       div.dataset.path = JSON.stringify(path);
 
       div.innerHTML = `
-        <input type="checkbox" class="radio-select" data-path='${JSON.stringify(path)}'>
+        <div class="slot-left-column">
+          <span class="drag-handle" title="ドラッグして移動">≡</span>
+          <input type="checkbox" class="radio-select" data-path='${JSON.stringify(path)}'>
+        </div>
         <div class="inputs-container">
           <input type="text" class="input-box word-input" 
                  value="${escapeHtml(pair.word)}" placeholder="単語" 
@@ -442,7 +594,7 @@
                     onclick="unhideText(this)">${escapeHtml(pair.desc)}</textarea>
         </div>
       `;
-      setupPointerDrag(div);
+      setupPointerDrag(div, div.querySelector('.drag-handle'));
       return div;
     }
 
@@ -490,7 +642,6 @@
       return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    // ID指定による堅牢なテキスト更新
     function updateText(pairId, field, value) {
       const memo = appData.memos.find(m => m.id === currentMemoId);
       if (!memo) return;
@@ -515,21 +666,69 @@
       saveData();
     }
 
+    // --- 特定位置挿入ダイアログ制御 ---
+    let selectedInsertPath = null;
+
     function addPair() {
+      if (isScreenLocked) return;
+      const checked = document.querySelectorAll('.radio-select:checked');
+      if (checked.length >= 2) return; // 2個以上選択されている場合は不発
+
       const memo = appData.memos.find(m => m.id === currentMemoId);
       if (!memo) return;
 
-      memo.items.push({
+      if (checked.length === 1) {
+        selectedInsertPath = JSON.parse(checked[0].dataset.path);
+        document.getElementById('add-modal').classList.add('active');
+      } else {
+        memo.items.push({
+          id: 'pair_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+          type: 'pair',
+          word: '',
+          desc: ''
+        });
+        saveData();
+        renderMemoContent();
+      }
+    }
+
+    function confirmAddPair(position) {
+      const memo = appData.memos.find(m => m.id === currentMemoId);
+      if (!memo || !selectedInsertPath) return;
+
+      const newPair = {
         id: 'pair_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
         type: 'pair',
         word: '',
         desc: ''
-      });
+      };
+
+      if (selectedInsertPath.length === 1) {
+        const idx = selectedInsertPath[0];
+        const insertIdx = (position === 'above') ? idx : idx + 1;
+        memo.items.splice(insertIdx, 0, newPair);
+      } else if (selectedInsertPath.length === 2) {
+        const groupIdx = selectedInsertPath[0];
+        const pairIdx = selectedInsertPath[1];
+        const groupObj = memo.items[groupIdx];
+        if (groupObj && groupObj.items) {
+          const insertIdx = (position === 'above') ? pairIdx : pairIdx + 1;
+          groupObj.items.splice(insertIdx, 0, newPair);
+        }
+      }
+
+      closeAddModal();
       saveData();
       renderMemoContent();
     }
 
+    function closeAddModal() {
+      selectedInsertPath = null;
+      document.getElementById('add-modal').classList.remove('active');
+    }
+
     function deleteSelected() {
+      if (isScreenLocked) return;
       const checkboxes = document.querySelectorAll('.radio-select:checked');
       if (checkboxes.length === 0) return alert('削除する項目を選択してください。');
 
@@ -560,6 +759,7 @@
     }
 
     function toggleTargetState(target) {
+      if (isScreenLocked) return;
       const selector = target === 'word' ? '.word-input' : '.desc-input';
       const inputs = document.querySelectorAll(selector);
       
@@ -606,6 +806,8 @@
       document.querySelectorAll('.pair-item, .group-container').forEach(el => {
         el.classList.toggle('drag-locked', isAnyHidden);
       });
+
+      updateAddButtonState();
     }
 
     function isHiddenModeActive() {
@@ -614,16 +816,18 @@
     }
 
     // ==========================================
-    // 完全修復版 ドラッグ＆ドロップ処理
+    // ドラッグ＆ドロップ処理
     // ==========================================
     let dragTarget = null;
     let ghostEl = null;
     let offsetY = 0;
+    let autoScrollTimer = null;
 
     function setupPointerDrag(element, handleEl = null) {
       const trigger = handleEl || element;
 
       trigger.addEventListener('pointerdown', (e) => {
+        if (isScreenLocked) return;
         if (['INPUT', 'TEXTAREA', 'BUTTON'].includes(e.target.tagName)) return;
         if (isHiddenModeActive()) return;
 
@@ -647,6 +851,8 @@
           if (!ghostEl) return;
           ghostEl.style.top = (me.clientY - offsetY) + 'px';
 
+          handleAutoScroll(me.clientY);
+
           ghostEl.style.display = 'none';
           let targetUnder = document.elementFromPoint(me.clientX, me.clientY);
           ghostEl.style.display = 'block';
@@ -666,6 +872,7 @@
         };
 
         const onPointerUp = (ue) => {
+          stopAutoScroll();
           try { trigger.releasePointerCapture(ue.pointerId); } catch(err) {}
 
           trigger.removeEventListener('pointermove', onPointerMove);
@@ -695,12 +902,35 @@
       });
     }
 
+    function handleAutoScroll(clientY) {
+      const scrollThreshold = 70;
+      const scrollSpeed = 12;
+
+      stopAutoScroll();
+
+      if (clientY < scrollThreshold) {
+        autoScrollTimer = setInterval(() => {
+          window.scrollBy(0, -scrollSpeed);
+        }, 16);
+      } else if (window.innerHeight - clientY < scrollThreshold) {
+        autoScrollTimer = setInterval(() => {
+          window.scrollBy(0, scrollSpeed);
+        }, 16);
+      }
+    }
+
+    function stopAutoScroll() {
+      if (autoScrollTimer) {
+        clearInterval(autoScrollTimer);
+        autoScrollTimer = null;
+      }
+    }
+
     function clearHighlights() {
       document.querySelectorAll('.hover-combine').forEach(el => el.classList.remove('hover-combine'));
       document.querySelectorAll('.hover-group').forEach(el => el.classList.remove('hover-group'));
     }
 
-    // 破損を防ぐID安全ドロップロジック
     function handleDropAction(draggedEl, targetUnder) {
       if (!draggedEl) { renderMemoContent(); return; }
 
@@ -732,9 +962,8 @@
       // 2. 【ペア同士で重ねて新規グループ作成】
       else if (targetPairEl && targetPairEl.dataset.id !== draggedId && draggedEl.dataset.type === 'pair') {
         const targetPairId = targetPairEl.dataset.id;
-        
-        // 移動元とドロップ先が両方存在するか確認
         const draggedData = findAndRemoveItemById(memo, draggedId);
+        
         if (draggedData) {
           const targetIndex = memo.items.findIndex(i => i.id === targetPairId);
           if (targetIndex !== -1) {
@@ -746,7 +975,6 @@
               items: [targetData, draggedData]
             };
           } else {
-            // ドロップ先が既存グループ内ペアの場合
             memo.items.forEach(item => {
               if (item.type === 'group' && item.items) {
                 const idx = item.items.findIndex(p => p.id === targetPairId);
@@ -758,9 +986,8 @@
           }
         }
       } 
-      // 3. 【グループ解除（ルートに移動）】
+      // 3. 【グループ解除】
       else if (rootContainer && !targetGroupEl) {
-        // グループ内にあった場合のみ解除して外に出す
         let isInsideGroup = false;
         memo.items.forEach(item => {
           if (item.type === 'group' && item.items) {
@@ -779,7 +1006,6 @@
       renderMemoContent();
     }
 
-    // ID検索による要素の安全削除と抽出
     function findAndRemoveItemById(memo, itemId) {
       let extracted = null;
       memo.items = memo.items.filter(item => {
