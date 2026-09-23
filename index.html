@@ -25,6 +25,7 @@
       --group-bg: #efece6;
       --group-border: #d5d1c8;
       --hidden-mask: #333333;
+      --indicator-color: #1a1a1a;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
@@ -47,7 +48,7 @@
       font-size: 28px;
       font-weight: 400;
       letter-spacing: 0.25em;
-      text-transform: lowercase; /* free memo の雰囲気に合わせた小文字ニュアンス */
+      text-transform: lowercase;
     }
 
     button {
@@ -71,7 +72,6 @@
     .btn-danger { background: transparent; color: #a33b3b; border: 1px solid #f0d5d5; }
     .btn-rename { padding: 4px 10px; font-size: 11px; border-radius: 2px; background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); }
 
-    /* 非アクティブ（ボタン無効化）スタイル */
     .btn-disabled {
       opacity: 0.3 !important;
       cursor: not-allowed !important;
@@ -120,7 +120,7 @@
     .header h2 { font-size: 16px; font-weight: 400; letter-spacing: 0.08em; color: var(--text-main); flex: 1; outline: none; border-bottom: 1px solid transparent; transition: border 0.2s; }
     .header h2:focus { border-bottom-color: var(--accent-gold); }
 
-    /* 洗練されたミニマルSVG鍵ロックボタン */
+    /* ロックボタン */
     .btn-lock {
       display: inline-flex;
       align-items: center;
@@ -176,8 +176,8 @@
     .btn-toggle-desc { width: 60%; flex-shrink: 0; }
     .toggle-btn.active-show { background: var(--text-main); color: #ffffff; border-color: var(--text-main); }
 
-    /* メインリスト */
-    #pair-container { min-height: 300px; padding-bottom: 60px; }
+    /* メインリスト（最下部へのドロップ用ドロップゾーン領域を確保） */
+    #pair-container { min-height: 300px; padding-bottom: 100px; position: relative; }
 
     /* 1スロット */
     .pair-item {
@@ -185,7 +185,7 @@
       gap: 8px;
       padding: 10px;
       border-radius: 2px;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
       align-items: flex-start;
       background: var(--card-odd);
       border: 1px solid var(--border-color);
@@ -252,19 +252,45 @@
 
     /* ロック状態のスタイル */
     .screen-locked .drag-handle { cursor: not-allowed !important; opacity: 0.3; }
-    .screen-locked .input-box { pointer-events: none; background: rgba(0,0,0,0.02); }
-    .screen-locked button:not(.btn-lock), .screen-locked .radio-select { pointer-events: none; opacity: 0.5; }
+    .screen-locked button:not(.btn-lock):not(.toggle-btn), 
+    .screen-locked .radio-select { pointer-events: none; opacity: 0.5; }
 
-    /* ハイライト指示 */
-    .pair-item.hover-combine { border: 1.5px solid var(--accent-gold) !important; background: #fdfbf7 !important; }
-    .group-container.hover-group { background: #e8e5dd !important; border-color: var(--accent-gold) !important; }
+    /* グループ化時の強調枠表示 */
+    .pair-item.hover-combine {
+      border: 2px solid var(--accent-gold) !important;
+      background: #fdfbf7 !important;
+      box-shadow: 0 0 12px rgba(197, 160, 89, 0.3) !important;
+    }
+
+    /* パワポ風挿入位置インジケーター */
+    .drop-indicator {
+      position: absolute;
+      height: 3px;
+      background: var(--indicator-color);
+      border-radius: 2px;
+      z-index: 1000;
+      pointer-events: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      transition: all 0.05s ease;
+    }
+    .drop-indicator::before, .drop-indicator::after {
+      content: '';
+      position: absolute;
+      top: -3px;
+      width: 9px;
+      height: 9px;
+      background: var(--indicator-color);
+      border-radius: 50%;
+    }
+    .drop-indicator::before { left: -4px; }
+    .drop-indicator::after { right: -4px; }
 
     /* グループ枠 */
     .group-container {
       border: 1px dashed var(--group-border);
       background: var(--group-bg);
       padding: 10px;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       border-radius: 2px;
       position: relative;
     }
@@ -331,11 +357,8 @@
         <button class="btn-secondary" onclick="goToTitle()">← 戻る</button>
         <h2 id="current-memo-title" contenteditable="true" onblur="updateMemoTitle(this.innerText)">メモタイトル</h2>
         
-        <!-- シンプルなSVGシルエットのロックボタン -->
         <button id="btn-lock" class="btn-lock" onclick="toggleScreenLock()" title="画面固定切替">
-          <svg id="lock-icon" viewBox="0 0 24 24">
-            <!-- JavaScriptでPathを切り替え -->
-          </svg>
+          <svg id="lock-icon" viewBox="0 0 24 24"></svg>
         </button>
       </div>
 
@@ -372,7 +395,6 @@
     let currentMemoId = null;
     let isScreenLocked = false;
 
-    // SVG鍵アイコンパス定義
     const SVG_UNLOCKED_PATH = '<rect x="5" y="11" width="14" height="10" rx="1.5"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/>';
     const SVG_LOCKED_PATH = '<rect x="5" y="11" width="14" height="10" rx="1.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>';
 
@@ -428,12 +450,27 @@
         btn.classList.remove('locked');
         memoPage.classList.remove('screen-locked');
       }
+      updateInputReadOnlyState();
     }
 
     function updateLockIcon() {
       const svg = document.getElementById('lock-icon');
       if (svg) {
         svg.innerHTML = isScreenLocked ? SVG_LOCKED_PATH : SVG_UNLOCKED_PATH;
+      }
+    }
+
+    function updateInputReadOnlyState() {
+      document.querySelectorAll('.input-box, .group-title').forEach(input => {
+        if (isScreenLocked) {
+          input.setAttribute('readonly', 'true');
+        } else {
+          input.removeAttribute('readonly');
+        }
+      });
+      const titleEl = document.getElementById('current-memo-title');
+      if (titleEl) {
+        titleEl.contentEditable = isScreenLocked ? 'false' : 'true';
       }
     }
 
@@ -512,6 +549,7 @@
     }
 
     function updateMemoTitle(newTitle) {
+      if (isScreenLocked) return;
       const memo = appData.memos.find(m => m.id === currentMemoId);
       if (memo) { memo.title = newTitle; saveData(); }
     }
@@ -543,20 +581,40 @@
         }
       });
 
-      document.querySelectorAll('.desc-input').forEach(el => autoResize(el));
-      
-      // チェックボックスイベントリスナー登録＆ボタン非アクティブ状態更新
+      // レンダリング・レイアウト確定後にすべてのtextareaの高さを確実に再計算
+      requestAnimationFrame(() => {
+        document.querySelectorAll('.desc-input').forEach(el => autoResize(el));
+      });
+
       setupCheckboxListeners();
       updateButtonUI();
+      updateInputReadOnlyState();
+    }
+
+    function updateZebraClasses() {
+      let slotCounter = 0;
+      const container = document.getElementById('pair-container');
+      Array.from(container.children).forEach(child => {
+        if (child.classList.contains('pair-item')) {
+          slotCounter++;
+          child.classList.toggle('zebra-even', slotCounter % 2 === 0);
+        } else if (child.classList.contains('group-container')) {
+          const groupPairs = child.querySelectorAll('.pair-item');
+          groupPairs.forEach(pair => {
+            slotCounter++;
+            pair.classList.toggle('zebra-even', slotCounter % 2 === 0);
+          });
+        }
+      });
     }
 
     function setupCheckboxListeners() {
       document.querySelectorAll('.radio-select').forEach(cb => {
+        cb.removeEventListener('change', updateAddButtonState);
         cb.addEventListener('change', updateAddButtonState);
       });
     }
 
-    // 2つ以上選択されている場合、スロット追加ボタンを非アクティブ化
     function updateAddButtonState() {
       const checkedCount = document.querySelectorAll('.radio-select:checked').length;
       const btnAdd = document.getElementById('btn-add-pair');
@@ -576,12 +634,11 @@
       div.className = 'pair-item' + (countIndex % 2 === 0 ? ' zebra-even' : '');
       div.dataset.type = 'pair';
       div.dataset.id = pair.id;
-      div.dataset.path = JSON.stringify(path);
 
       div.innerHTML = `
         <div class="slot-left-column">
           <span class="drag-handle" title="ドラッグして移動">≡</span>
-          <input type="checkbox" class="radio-select" data-path='${JSON.stringify(path)}'>
+          <input type="checkbox" class="radio-select">
         </div>
         <div class="inputs-container">
           <input type="text" class="input-box word-input" 
@@ -605,7 +662,6 @@
       groupDiv.className = 'group-container';
       groupDiv.dataset.type = 'group';
       groupDiv.dataset.id = group.id;
-      groupDiv.dataset.path = JSON.stringify([groupIndex]);
 
       const headerDiv = document.createElement('div');
       headerDiv.className = 'group-header';
@@ -615,10 +671,14 @@
       `;
 
       headerDiv.querySelector('.group-title').oninput = (e) => {
+        if (isScreenLocked) return;
         const memo = appData.memos.find(m => m.id === currentMemoId);
-        if (memo && memo.items[groupIndex]) {
-          memo.items[groupIndex].name = e.target.value;
-          saveData();
+        if (memo) {
+          const item = memo.items.find(i => i.id === group.id);
+          if (item) {
+            item.name = e.target.value;
+            saveData();
+          }
         }
       };
 
@@ -643,6 +703,7 @@
     }
 
     function updateText(pairId, field, value) {
+      if (isScreenLocked) return;
       const memo = appData.memos.find(m => m.id === currentMemoId);
       if (!memo) return;
 
@@ -667,18 +728,19 @@
     }
 
     // --- 特定位置挿入ダイアログ制御 ---
-    let selectedInsertPath = null;
+    let selectedInsertTarget = null;
 
     function addPair() {
       if (isScreenLocked) return;
       const checked = document.querySelectorAll('.radio-select:checked');
-      if (checked.length >= 2) return; // 2個以上選択されている場合は不発
+      if (checked.length >= 2) return;
 
       const memo = appData.memos.find(m => m.id === currentMemoId);
       if (!memo) return;
 
       if (checked.length === 1) {
-        selectedInsertPath = JSON.parse(checked[0].dataset.path);
+        const targetPairItem = checked[0].closest('.pair-item');
+        selectedInsertTarget = targetPairItem ? targetPairItem.dataset.id : null;
         document.getElementById('add-modal').classList.add('active');
       } else {
         memo.items.push({
@@ -694,7 +756,7 @@
 
     function confirmAddPair(position) {
       const memo = appData.memos.find(m => m.id === currentMemoId);
-      if (!memo || !selectedInsertPath) return;
+      if (!memo || !selectedInsertTarget) return;
 
       const newPair = {
         id: 'pair_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
@@ -703,17 +765,21 @@
         desc: ''
       };
 
-      if (selectedInsertPath.length === 1) {
-        const idx = selectedInsertPath[0];
-        const insertIdx = (position === 'above') ? idx : idx + 1;
-        memo.items.splice(insertIdx, 0, newPair);
-      } else if (selectedInsertPath.length === 2) {
-        const groupIdx = selectedInsertPath[0];
-        const pairIdx = selectedInsertPath[1];
-        const groupObj = memo.items[groupIdx];
-        if (groupObj && groupObj.items) {
-          const insertIdx = (position === 'above') ? pairIdx : pairIdx + 1;
-          groupObj.items.splice(insertIdx, 0, newPair);
+      let inserted = false;
+      for (let i = 0; i < memo.items.length; i++) {
+        if (memo.items[i].id === selectedInsertTarget) {
+          const insertIdx = (position === 'above') ? i : i + 1;
+          memo.items.splice(insertIdx, 0, newPair);
+          inserted = true;
+          break;
+        } else if (memo.items[i].type === 'group' && memo.items[i].items) {
+          const pIdx = memo.items[i].items.findIndex(p => p.id === selectedInsertTarget);
+          if (pIdx !== -1) {
+            const insertIdx = (position === 'above') ? pIdx : pIdx + 1;
+            memo.items[i].items.splice(insertIdx, 0, newPair);
+            inserted = true;
+            break;
+          }
         }
       }
 
@@ -723,7 +789,7 @@
     }
 
     function closeAddModal() {
-      selectedInsertPath = null;
+      selectedInsertTarget = null;
       document.getElementById('add-modal').classList.remove('active');
     }
 
@@ -735,22 +801,13 @@
       const memo = appData.memos.find(m => m.id === currentMemoId);
       if (!memo) return;
 
-      const paths = Array.from(checkboxes).map(cb => JSON.parse(cb.dataset.path));
-      
-      paths.forEach(path => {
-        if (path.length === 2 && memo.items[path[0]] && memo.items[path[0]].items) {
-          memo.items[path[0]].items[path[1]] = null;
-        } else if (path.length === 1) {
-          memo.items[path[0]] = null;
-        }
-      });
+      const selectedIds = Array.from(checkboxes).map(cb => {
+        const pairItem = cb.closest('.pair-item');
+        return pairItem ? pairItem.dataset.id : null;
+      }).filter(Boolean);
 
-      memo.items = memo.items.filter(item => {
-        if (!item) return false;
-        if (item.type === 'group') {
-          item.items = (item.items || []).filter(p => p !== null);
-        }
-        return true;
+      selectedIds.forEach(id => {
+        findAndRemoveItemById(memo, id);
       });
 
       cleanupGroups(memo);
@@ -759,7 +816,6 @@
     }
 
     function toggleTargetState(target) {
-      if (isScreenLocked) return;
       const selector = target === 'word' ? '.word-input' : '.desc-input';
       const inputs = document.querySelectorAll(selector);
       
@@ -816,12 +872,28 @@
     }
 
     // ==========================================
-    // ドラッグ＆ドロップ処理
+    // 精密インジケーター ＆ 最下部ドロップ対応ドラッグ＆ドロップ
     // ==========================================
     let dragTarget = null;
     let ghostEl = null;
     let offsetY = 0;
     let autoScrollTimer = null;
+    let dropIndicator = null;
+    let currentDropIntent = null;
+
+    function getOrCreateIndicator() {
+      if (!dropIndicator) {
+        dropIndicator = document.createElement('div');
+        dropIndicator.className = 'drop-indicator';
+      }
+      return dropIndicator;
+    }
+
+    function removeIndicator() {
+      if (dropIndicator && dropIndicator.parentNode) {
+        dropIndicator.parentNode.removeChild(dropIndicator);
+      }
+    }
 
     function setupPointerDrag(element, handleEl = null) {
       const trigger = handleEl || element;
@@ -858,17 +930,7 @@
           ghostEl.style.display = 'block';
 
           clearHighlights();
-
-          if (!targetUnder) return;
-
-          const hoveredPair = targetUnder.closest('.pair-item');
-          const hoveredGroup = targetUnder.closest('.group-container');
-
-          if (hoveredGroup && hoveredGroup !== dragTarget && dragTarget.dataset.type === 'pair') {
-            hoveredGroup.classList.add('hover-group');
-          } else if (hoveredPair && hoveredPair !== dragTarget && dragTarget.dataset.type === 'pair') {
-            hoveredPair.classList.add('hover-combine');
-          }
+          updateDropIntentAndIndicator(me.clientX, me.clientY, targetUnder);
         };
 
         const onPointerUp = (ue) => {
@@ -881,7 +943,6 @@
           if (!ghostEl) return;
 
           ghostEl.style.display = 'none';
-          let targetUnder = document.elementFromPoint(ue.clientX, ue.clientY);
           
           if (ghostEl && ghostEl.parentNode) {
             ghostEl.parentNode.removeChild(ghostEl);
@@ -891,15 +952,123 @@
           if (dragTarget) {
             dragTarget.classList.remove('is-dragging');
           }
+          
+          removeIndicator();
           clearHighlights();
 
-          handleDropAction(dragTarget, targetUnder);
+          handleDropByIntent(dragTarget);
           dragTarget = null;
+          currentDropIntent = null;
         };
 
         trigger.addEventListener('pointermove', onPointerMove);
         trigger.addEventListener('pointerup', onPointerUp);
       });
+    }
+
+    // リスト最下部およびグループ底面を考慮したインジケーター位置判定
+    function updateDropIntentAndIndicator(clientX, clientY, targetUnder) {
+      currentDropIntent = null;
+      if (!dragTarget) {
+        removeIndicator();
+        return;
+      }
+
+      const container = document.getElementById('pair-container');
+      const containerRect = container.getBoundingClientRect();
+      const indicator = getOrCreateIndicator();
+
+      const hoveredPair = targetUnder ? targetUnder.closest('.pair-item') : null;
+      const hoveredGroup = targetUnder ? targetUnder.closest('.group-container') : null;
+
+      if (hoveredPair && hoveredPair !== dragTarget && dragTarget.dataset.type === 'pair') {
+        const rect = hoveredPair.getBoundingClientRect();
+        const relY = clientY - rect.top;
+        const ratio = relY / rect.height;
+
+        const draggedParentGroup = dragTarget.closest('.group-container');
+        const hoveredParentGroup = hoveredPair.closest('.group-container');
+        const isSameGroup = draggedParentGroup && hoveredParentGroup && (draggedParentGroup === hoveredParentGroup);
+
+        if (isSameGroup) {
+          if (ratio < 0.5) {
+            currentDropIntent = { action: 'insert_before', targetEl: hoveredPair };
+            indicator.style.width = rect.width + 'px';
+            indicator.style.left = (rect.left + window.scrollX) + 'px';
+            indicator.style.top = (rect.top + window.scrollY - 2) + 'px';
+          } else {
+            currentDropIntent = { action: 'insert_after', targetEl: hoveredPair };
+            indicator.style.width = rect.width + 'px';
+            indicator.style.left = (rect.left + window.scrollX) + 'px';
+            indicator.style.top = (rect.bottom + window.scrollY - 1) + 'px';
+          }
+          document.body.appendChild(indicator);
+        } else {
+          if (ratio < 0.25) {
+            currentDropIntent = { action: 'insert_before', targetEl: hoveredPair };
+            indicator.style.width = rect.width + 'px';
+            indicator.style.left = (rect.left + window.scrollX) + 'px';
+            indicator.style.top = (rect.top + window.scrollY - 2) + 'px';
+            document.body.appendChild(indicator);
+          } else if (ratio >= 0.25 && ratio <= 0.75) {
+            removeIndicator();
+            currentDropIntent = { action: 'combine', targetEl: hoveredPair };
+            hoveredPair.classList.add('hover-combine');
+          } else {
+            currentDropIntent = { action: 'insert_after', targetEl: hoveredPair };
+            indicator.style.width = rect.width + 'px';
+            indicator.style.left = (rect.left + window.scrollX) + 'px';
+            indicator.style.top = (rect.bottom + window.scrollY - 1) + 'px';
+            document.body.appendChild(indicator);
+          }
+        }
+      } 
+      else if (hoveredGroup && hoveredGroup !== dragTarget && dragTarget.dataset.type === 'pair') {
+        const bodyEl = hoveredGroup.querySelector('.group-body');
+        const rect = hoveredGroup.getBoundingClientRect();
+        
+        currentDropIntent = { action: 'append_group', targetEl: hoveredGroup };
+        const bodyRect = bodyEl ? bodyEl.getBoundingClientRect() : rect;
+
+        indicator.style.width = (bodyRect.width || rect.width - 20) + 'px';
+        indicator.style.left = ((bodyRect.left || rect.left + 10) + window.scrollX) + 'px';
+        indicator.style.top = ((bodyRect.bottom || rect.bottom - 10) + window.scrollY - 2) + 'px';
+        document.body.appendChild(indicator);
+      } 
+      // 最下部エリア（ターゲット不在またはコンテナ下部余白領域にドラッグした場合）
+      else if (clientY > containerRect.top) {
+        const lastChild = container.lastElementChild;
+        if (lastChild && lastChild !== dragTarget) {
+          if (lastChild.classList.contains('group-container')) {
+            const groupRect = lastChild.getBoundingClientRect();
+            // 最下部グループの「枠内底面」か「完全に外（最下部）」かを判定
+            if (clientY <= groupRect.bottom) {
+              const bodyEl = lastChild.querySelector('.group-body');
+              const bodyRect = bodyEl ? bodyEl.getBoundingClientRect() : groupRect;
+              currentDropIntent = { action: 'append_group', targetEl: lastChild };
+              indicator.style.width = (bodyRect.width || groupRect.width - 20) + 'px';
+              indicator.style.left = ((bodyRect.left || groupRect.left + 10) + window.scrollX) + 'px';
+              indicator.style.top = ((bodyRect.bottom || groupRect.bottom - 10) + window.scrollY - 2) + 'px';
+            } else {
+              currentDropIntent = { action: 'append_container', targetEl: container };
+              indicator.style.width = containerRect.width + 'px';
+              indicator.style.left = (containerRect.left + window.scrollX) + 'px';
+              indicator.style.top = (groupRect.bottom + window.scrollY + 6) + 'px';
+            }
+            document.body.appendChild(indicator);
+          } else {
+            const lastRect = lastChild.getBoundingClientRect();
+            currentDropIntent = { action: 'insert_after', targetEl: lastChild };
+            indicator.style.width = lastRect.width + 'px';
+            indicator.style.left = (lastRect.left + window.scrollX) + 'px';
+            indicator.style.top = (lastRect.bottom + window.scrollY - 1) + 'px';
+            document.body.appendChild(indicator);
+          }
+        }
+      } 
+      else {
+        removeIndicator();
+      }
     }
 
     function handleAutoScroll(clientY) {
@@ -931,79 +1100,114 @@
       document.querySelectorAll('.hover-group').forEach(el => el.classList.remove('hover-group'));
     }
 
-    function handleDropAction(draggedEl, targetUnder) {
-      if (!draggedEl) { renderMemoContent(); return; }
+    // ドロップ処理実行
+    function handleDropByIntent(draggedEl) {
+      if (!draggedEl || !currentDropIntent) return;
 
-      const memo = appData.memos.find(m => m.id === currentMemoId);
-      if (!memo) { renderMemoContent(); return; }
+      const action = currentDropIntent.action;
+      const targetEl = currentDropIntent.targetEl;
 
-      const draggedId = draggedEl.dataset.id;
-      if (!draggedId) { renderMemoContent(); return; }
-
-      if (!targetUnder) { renderMemoContent(); return; }
-
-      const targetGroupEl = targetUnder.closest('.group-container');
-      const targetPairEl = targetUnder.closest('.pair-item');
-      const rootContainer = targetUnder.closest('#pair-container');
-
-      // 1. 【グループへの追加】
-      if (targetGroupEl && targetGroupEl.dataset.id !== draggedId && draggedEl.dataset.type === 'pair') {
-        const targetGroupId = targetGroupEl.dataset.id;
-        const draggedData = findAndRemoveItemById(memo, draggedId);
-        
-        if (draggedData) {
-          const groupObj = memo.items.find(i => i.id === targetGroupId);
-          if (groupObj && groupObj.type === 'group') {
-            groupObj.items = groupObj.items || [];
-            groupObj.items.push(draggedData);
-          }
-        }
+      if (action === 'insert_before') {
+        targetEl.parentNode.insertBefore(draggedEl, targetEl);
       } 
-      // 2. 【ペア同士で重ねて新規グループ作成】
-      else if (targetPairEl && targetPairEl.dataset.id !== draggedId && draggedEl.dataset.type === 'pair') {
-        const targetPairId = targetPairEl.dataset.id;
-        const draggedData = findAndRemoveItemById(memo, draggedId);
-        
-        if (draggedData) {
-          const targetIndex = memo.items.findIndex(i => i.id === targetPairId);
-          if (targetIndex !== -1) {
-            const targetData = memo.items[targetIndex];
-            memo.items[targetIndex] = {
-              id: 'group_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-              type: 'group',
-              name: '新しいグループ',
-              items: [targetData, draggedData]
-            };
-          } else {
-            memo.items.forEach(item => {
-              if (item.type === 'group' && item.items) {
-                const idx = item.items.findIndex(p => p.id === targetPairId);
-                if (idx !== -1) {
-                  item.items.splice(idx, 0, draggedData);
-                }
-              }
-            });
-          }
-        }
+      else if (action === 'insert_after') {
+        targetEl.parentNode.insertBefore(draggedEl, targetEl.nextSibling);
       } 
-      // 3. 【グループ解除】
-      else if (rootContainer && !targetGroupEl) {
-        let isInsideGroup = false;
-        memo.items.forEach(item => {
-          if (item.type === 'group' && item.items) {
-            if (item.items.some(p => p.id === draggedId)) isInsideGroup = true;
-          }
-        });
+      else if (action === 'append_group') {
+        const bodyEl = targetEl.querySelector('.group-body');
+        if (bodyEl) bodyEl.appendChild(draggedEl);
+      } 
+      else if (action === 'append_container') {
+        targetEl.appendChild(draggedEl);
+      } 
+      else if (action === 'combine') {
+        const parentGroup = targetEl.closest('.group-container');
+        if (parentGroup) {
+          const bodyEl = parentGroup.querySelector('.group-body');
+          if (bodyEl) bodyEl.insertBefore(draggedEl, targetEl.nextSibling);
+        } else {
+          const newGroupId = 'group_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+          const newGroupObj = { id: newGroupId, type: 'group', name: '新しいグループ', items: [] };
+          const newGroupEl = createGroupElement(newGroupObj, 0, 0);
+          const bodyEl = newGroupEl.querySelector('.group-body');
 
-        if (isInsideGroup) {
-          const draggedData = findAndRemoveItemById(memo, draggedId);
-          if (draggedData) memo.items.push(draggedData);
+          targetEl.parentNode.insertBefore(newGroupEl, targetEl);
+          bodyEl.appendChild(targetEl);
+          bodyEl.appendChild(draggedEl);
         }
       }
 
-      cleanupGroups(memo);
+      syncDataFromDOM();
+      updateZebraClasses();
+      setupCheckboxListeners();
+    }
+
+    function syncDataFromDOM() {
+      const memo = appData.memos.find(m => m.id === currentMemoId);
+      if (!memo) return;
+
+      const dataMap = new Map();
+      function collectData(items) {
+        (items || []).forEach(item => {
+          if (!item) return;
+          if (item.type === 'pair') dataMap.set(item.id, item);
+          else if (item.type === 'group') {
+            dataMap.set(item.id, item);
+            collectData(item.items);
+          }
+        });
+      }
+      collectData(memo.items);
+
+      const newItems = [];
+      const container = document.getElementById('pair-container');
+
+      Array.from(container.children).forEach(childEl => {
+        const id = childEl.dataset.id;
+        if (!id) return;
+
+        if (childEl.classList.contains('pair-item')) {
+          const pairObj = dataMap.get(id) || {
+            id: id, type: 'pair',
+            word: childEl.querySelector('.word-input').value,
+            desc: childEl.querySelector('.desc-input').value
+          };
+          newItems.push(pairObj);
+        } else if (childEl.classList.contains('group-container')) {
+          let groupObj = dataMap.get(id);
+          const titleVal = childEl.querySelector('.group-title').value;
+
+          if (!groupObj || groupObj.type !== 'group') {
+            groupObj = { id: id, type: 'group', name: titleVal, items: [] };
+          } else {
+            groupObj.name = titleVal;
+            groupObj.items = [];
+          }
+
+          const childPairs = childEl.querySelectorAll('.group-body > .pair-item');
+          childPairs.forEach(pEl => {
+            const pId = pEl.dataset.id;
+            const pObj = dataMap.get(pId) || {
+              id: pId, type: 'pair',
+              word: pEl.querySelector('.word-input').value,
+              desc: pEl.querySelector('.desc-input').value
+            };
+            groupObj.items.push(pObj);
+          });
+
+          if (groupObj.items.length === 1) {
+            newItems.push(groupObj.items[0]);
+            childEl.remove();
+          } else if (groupObj.items.length > 1) {
+            newItems.push(groupObj);
+          } else {
+            childEl.remove();
+          }
+        }
+      });
+
+      memo.items = newItems;
       saveData();
-      renderMemoContent();
     }
 
     function findAndRemoveItemById(memo, itemId) {
